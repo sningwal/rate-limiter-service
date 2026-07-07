@@ -1,21 +1,15 @@
 package com.ratelimiter.rate_limiter_service.model;
 
+import com.ratelimiter.rate_limiter_service.enums.RateLimiterType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import lombok.Setter;
 
 @Getter
-@Component
-@ConfigurationProperties(prefix = "ratelimiter")
+@Setter
+@AllArgsConstructor
 public class RateLimiterConfig {
-    private volatile int maxRequests = 10;
-    private volatile int windowInSeconds = 60;
-    public void setMaxRequests(int maxRequests) {
-        this.maxRequests = maxRequests;
-    }
-    public void setWindowInSeconds(int windowInSeconds) {
-        this.windowInSeconds = windowInSeconds;
-    }
+    private RateLimiterType algorithm;
+    private int maxRequests;
+    private int windowInSeconds;
 }

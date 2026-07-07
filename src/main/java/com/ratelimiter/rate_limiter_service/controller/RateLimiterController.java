@@ -1,20 +1,24 @@
 package com.ratelimiter.rate_limiter_service.controller;
 
+import com.ratelimiter.rate_limiter_service.dto.RateLimitResult;
+import com.ratelimiter.rate_limiter_service.enums.RateLimiterType;
 import com.ratelimiter.rate_limiter_service.ratelimiter.RateLimiter;
+import com.ratelimiter.rate_limiter_service.service.RateLimiterService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
 public class RateLimiterController {
+    private final RateLimiterService rateLimiterService;
 
-    private final RateLimiter rateLimiter;
-    public RateLimiterController(RateLimiter rateLimiter) {
-        this.rateLimiter = rateLimiter;
+    public RateLimiterController(RateLimiterService rateLimiterService) {
+        this.rateLimiterService = rateLimiterService;
     }
 
     /**
@@ -31,46 +35,21 @@ public class RateLimiterController {
     public ResponseEntity<?> getResource(
             @RequestHeader(value = "X-Client-Id", required = false) String clientId,
             HttpServletRequest request) {
+        RateLimitResult result = rateLimiterService.checkRequest(clientId,request);
 
-        String clientKey = resolveClientKey(clientId, request);
-
-        if (!rateLimiter.allowRequest(clientKey)) {
+        if (!result.allowed()) {
             return ResponseEntity
                     .status(HttpStatus.TOO_MANY_REQUESTS)
                     .body(Map.of(
                             "error", "rate_limit_exceeded",
-                            "algorithm",rateLimiter.name(),
-                            "clientKey", clientKey
+                            "algorithm", result.algorithm()
                     ));
         }
 
         return ResponseEntity.ok(Map.of(
                 "message", "request allowed",
-                "algorithm", rateLimiter.name(),
-                "clientKey", clientKey
+                "algorithm", result.algorithm(),
+                "clientKey",result.clientKey()
         ));
-    }
-
-    /**
-     * If an X-Client-Id header is ever sent, it takes priority else IP-based.
-     */
-    private String resolveClientKey(String apiKey, HttpServletRequest request) {
-        if (apiKey != null && !apiKey.isBlank()) {
-            return "user:" + apiKey; // not exercised yet, no auth issuing keys
-        }
-        return "ip:" + extractClientIp(request);
-    }
-
-    /**
-     * Prefers X-Forwarded-For (set by a reverse proxy like Nginx) since
-     * request.getRemoteAddr() would otherwise return the proxy's own IP,
-     * not the real client's. Falls back to getRemoteAddr() with no proxy.
-     */
-    private String extractClientIp(HttpServletRequest request) {
-        String forwardedFor = request.getHeader("X-Forwarded-For");
-        if (forwardedFor != null && !forwardedFor.isBlank()) {
-            return forwardedFor.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
     }
 }
