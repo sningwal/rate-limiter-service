@@ -2,16 +2,17 @@ package com.ratelimiter.rate_limiter_service.ratelimiter;
 import com.ratelimiter.rate_limiter_service.enums.RateLimiterType;
 
 import com.ratelimiter.rate_limiter_service.model.RateLimiterConfig;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Component
+
 public class TokenBucketRateLimiter extends RateLimiter {
 
     private final ConcurrentHashMap<String, Bucket> buckets = new ConcurrentHashMap<>(); // clientKey - [Tokens lastRefillTimestampNanos]
 
     public TokenBucketRateLimiter(RateLimiterConfig rateLimiterConfig) {
-        super(rateLimiterConfig, RateLimiterType.TOKEN_BUCKET);
+        super(rateLimiterConfig);
     }
 
     @Override
