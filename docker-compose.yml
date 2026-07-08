@@ -1,12 +1,106 @@
+
 services:
+  rate-limiter-service:
+    build: .
+    container_name: rate-limiter-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    environment:
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+    networks:
+      - app-network
+
   redis:
     image: redis:7-alpine
     container_name: rate-limiter-redis
+    command: ["redis-server", "--appendonly", "yes"]
     ports:
       - "6379:6379"
-    command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis-data:/data
+    networks:
+      - app-network
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - rate-limiter-service
+    networks:
+      - app-network
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - app-network
 
 volumes:
   redis-data:
+
+networks:
+  app-network:
+    driver: bridge
+##services:
+##  redis:
+##    image: redis:7-alpine
+##    container_name: rate-limiter-redis
+##    ports:
+##      - "6379:6379"
+##    command: ["redis-server", "--appendonly", "yes"]
+##    volumes:
+##      - redis-data:/data
+##
+##volumes:
+##  redis-data:
+#
+#version: "3.9"
+#
+#services:
+#  rate-limiter-service:
+#    build: .
+#    container_name: rate-limiter-service
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - redis
+#    environment:
+#      SPRING_DATA_REDIS_HOST: redis
+#      SPRING_DATA_REDIS_PORT: 6379
+#    networks:
+#      - app-network
+#
+#  redis:
+#    image: redis:7-alpine
+#    container_name: rate-limiter-redis
+#    ports:
+#      - "6379:6379"
+#    command: ["redis-server", "--appendonly", "yes"]
+#    volumes:
+#      - redis-data:/data
+#    networks:
+#      - app-network
+#
+#volumes:
+#  redis-data:
+#
+#networks:
+#  app-network:
+#    driver: bridge
+#
