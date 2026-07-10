@@ -26,7 +26,7 @@ public class RedisRateLimiterConfigController {
             @PathVariable("algorithm") String rateLimiterType,
             @RequestBody AlgorithmConfig config
     ) {
-        RateLimiterType rateLimiterTypeEnum = Enum.valueOf(RateLimiterType.class, rateLimiterType.toUpperCase());
+        RateLimiterType rateLimiterTypeEnum = Enum.valueOf(RateLimiterType.class, rateLimiterType.replace('-','_').toUpperCase());
         configStore.updateConfig(rateLimiterTypeEnum, config);
         return "Updated " + rateLimiterType;
     }

@@ -28,16 +28,13 @@ public class RateLimiterController {
      * user allows accurate, tiered limits (free vs paid) instead of one
      * shared limit per network. See resolveClientKey() below.
      */
-    @GetMapping("test")
-    public  ResponseEntity<?> getRe(){
-        return  ResponseEntity.ok("test");
-    }
+
     @GetMapping("/resource/{algo}")
     public ResponseEntity<?> getResource(
             @PathVariable("algo") String algorithm,
             @RequestHeader(value = "X-Client-Id", required = false) String clientId,
             HttpServletRequest request) {
-        System.out.println("at resource...");
+
         RateLimitResult result = rateLimiterService.checkRequest(clientId,algorithm,request);
 
 

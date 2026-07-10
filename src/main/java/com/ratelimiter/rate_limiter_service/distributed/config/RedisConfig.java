@@ -7,27 +7,37 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
-
+import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-
-/**
- * Redis client configuration.
- * Every rate-limiting algorithm is executed as a single Lua script via EVALSHA/EVAL,
- * so the read-modify-write cycle for each algorithm is atomic from Redis's point of
- * view, even under heavy concurrent load from many application instances.
- */
+import tools.jackson.databind.ObjectMapper;
 @Configuration
 public class RedisConfig {
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
+    public RedisTemplate<String, AlgorithmConfig> redisTemplate(
+            RedisConnectionFactory factory,
+            ObjectMapper objectMapper) {
+
+        RedisTemplate<String, AlgorithmConfig> template = new RedisTemplate<>();
+
         template.setConnectionFactory(factory);
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new StringRedisSerializer());
-        template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(new StringRedisSerializer());
+
+        StringRedisSerializer stringSerializer = new StringRedisSerializer();
+
+        JacksonJsonRedisSerializer<AlgorithmConfig> jsonSerializer =
+                new JacksonJsonRedisSerializer<>(
+                        objectMapper,
+                        AlgorithmConfig.class
+                );
+
+        template.setKeySerializer(stringSerializer);
+        template.setHashKeySerializer(stringSerializer);
+
+        template.setValueSerializer(jsonSerializer);
+        template.setHashValueSerializer(jsonSerializer);
+
         template.afterPropertiesSet();
+
         return template;
     }
 
@@ -62,5 +72,4 @@ public class RedisConfig {
         script.setResultType(Long.class);
         return script;
     }
-
 }

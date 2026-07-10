@@ -2,7 +2,6 @@ package com.ratelimiter.rate_limiter_service.distributed.manager;
 
 import com.ratelimiter.rate_limiter_service.distributed.enums.RateLimiterType;
 import com.ratelimiter.rate_limiter_service.distributed.ratelimiter.RateLimiter;
-import com.ratelimiter.rate_limiter_service.distributed.service.RedisRateLimiter;
 import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;

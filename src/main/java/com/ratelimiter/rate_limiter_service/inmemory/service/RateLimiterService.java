@@ -21,7 +21,7 @@ public class RateLimiterService {
             String rateLimiterType,
             HttpServletRequest request) {
 
-        String rateLimiterTypeUpperCase = rateLimiterType.toUpperCase();
+        String rateLimiterTypeUpperCase = rateLimiterType.replace('-','_').toUpperCase();
 
         String clientKey = resolveClientKey(clientId, request);
 

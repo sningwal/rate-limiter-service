@@ -10,7 +10,6 @@ import java.io.Serializable;
 @Getter
 @Setter
 @AllArgsConstructor
-@NoArgsConstructor
 public class AlgorithmConfig implements Serializable {
     private int maxRequests;
     private int windowInSeconds;
